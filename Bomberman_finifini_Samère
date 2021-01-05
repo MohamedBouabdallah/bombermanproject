@@ -1,0 +1,972 @@
+import os
+import pygame, time, sys, random
+#vérification de l'OS
+if os.name == 'nt': # Windows
+    import sprites_bomberman_windows as sp
+else:
+    import sprites_bomberman_mac as sp
+
+#initialisation de pygame
+pygame.init()
+
+horloge = pygame.time.Clock()
+
+ecran = pygame.display.set_mode((1088,832))
+#rectangle du bouton play
+bouton_play_rectangle = sp.bouton_play.get_rect()
+bouton_play_rectangle.x = 450
+bouton_play_rectangle.y = 350
+#recvtangle des règles
+imagerègles_rectangle = sp.imagerègles.get_rect()
+imagerègles_rectangle.x = 0
+imagerègles_rectangle.y = 487
+
+compteur_tour = 0
+#création d'une classe qui correspond au jeu
+class Game:
+
+    def __init__(self):
+        #savoir si le jeu a commencé
+        self.is_playing = False
+        #chargement du personnage
+        perso0 = Perso(dictPositionDepartperso0[numcarte][0],dictPositionDepartperso0[numcarte][1], sp.monstreV_stat)
+        perso1 = Perso(dictPositionDepartperso1[numcarte][0],dictPositionDepartperso1[numcarte][1], sp.monstreR_stat)
+        self.persos = [perso0, perso1]
+
+    def collision0(self):
+            possible = True
+            for objet in solides :
+                if game.persos[0].rectangle.colliderect(objet) == True :
+                    possible = False
+            return possible
+
+    def collision1(self):
+            possible = True
+            for objet in solides :
+                if game.persos[1].rectangle.colliderect(objet) == True :
+                    possible = False
+            return possible
+
+    def collisionbonus(self):
+        for objet in listebonus:
+            for perso in self.persos:
+                if perso.rectangle.colliderect(objet.bonusrect) == True :
+                    perso.getbonus(objet.type)
+                    objet.deletebonus()
+
+    def FinDuJeu(self) :
+        for perso in self.persos :
+            if perso.vivant == False :
+                if time.time() - perso.instant_mort >= 5 :
+                    self.is_playing = False
+                    perso.health = 1
+        
+
+    def demarrer(self):
+
+               #déplacements du perso 1
+        touches = pygame.key.get_pressed()
+        if self.persos[0].vivant :
+            if touches[pygame.K_d] == 0 or touches[pygame.K_q] == 0:
+                if touches[pygame.K_d] == 1 :
+                    self.persos[0].droite = True
+                    self.persos[0].deplacement_droite()
+                    sprite0.drawD()
+                    sprite0.advanceImage()
+                    #gestion des collisions
+                    if game.collision0() == False:
+                        self.persos[0].deplacement_gauche()
+                if touches[pygame.K_q] == 1 :
+                    self.persos[0].droite = False
+                    self.persos[0].deplacement_gauche()
+                    sprite0.drawG()
+                    sprite0.advanceImage()
+                    #gestion des collisions
+                    if self.collision0() == False:
+                        self.persos[0].deplacement_droite()
+            if touches[pygame.K_z] == 0 or touches[pygame.K_s] == 0:
+                if touches[pygame.K_z] == 1 :
+                    if self.persos[0].droite :
+                        sprite0.drawD()
+                        sprite0.advanceImage()
+                    else :
+                        sprite0.drawG()
+                        sprite0.advanceImage()
+                    self.persos[0].deplacement_haut()
+                    #gestion des collisions
+                    if self.collision0() == False:
+                        self.persos[0].deplacement_bas()
+                if touches[pygame.K_s] == 1 :
+                    if game.persos[0].droite :
+                        sprite0.drawD()
+                        sprite0.advanceImage()
+                    else :
+                        sprite0.drawG()
+                        sprite0.advanceImage()
+                    game.persos[0].deplacement_bas()
+                    #gestion des collisions
+                    if game.collision0() == False:
+                        game.persos[0].deplacement_haut()
+            #poser une bombe
+            if touches[pygame.K_a] == 1 :
+                game.persos[0].poser_bombe()
+            if touches[pygame.K_g] == 1 and game.persos[0].détonation == True:
+                game.persos[0].faitpetertouteslesbombes()
+                ecran.blit(sp.monstreV_stat, (game.persos[0].rectangle.x, game.persos[0].rectangle.y))
+            #le perso est statique
+            if not(touches[pygame.K_d] == 1 or touches[pygame.K_q] == 1 or touches[pygame.K_z] == 1 or touches[pygame.K_s] == 1) or (touches[pygame.K_d] == 1 and touches[pygame.K_q] == 1 and touches[pygame.K_z] == 0 and touches[pygame.K_s] == 0) or (touches[pygame.K_d] == 0 and touches[pygame.K_q] == 0 and touches[pygame.K_z] == 1 and touches[pygame.K_s] == 1) or (touches[pygame.K_d] == 1 and touches[pygame.K_q] == 1 and touches[pygame.K_z] == 1 and touches[pygame.K_s] == 1):
+                ecran.blit(sp.monstreV_stat, (game.persos[0].rectangle.x, game.persos[0].rectangle.y))
+        else :
+            ecran.blit(sp.monstreV_mort, (game.persos[0].rectangle.x, game.persos[0].rectangle.y))
+            self.FinDuJeu()
+
+
+
+        #déplacements du perso 2
+        touches = pygame.key.get_pressed()
+        if self.persos[1].vivant :
+            if touches[pygame.K_RIGHT] == 0 or touches[pygame.K_LEFT] == 0:
+                if touches[pygame.K_RIGHT] == 1 :
+                    self.persos[1].droite = True
+                    self.persos[1].deplacement_droite()
+                    sprite1.drawD()
+                    sprite1.advanceImage()
+                    #gestion des collisions
+                    if game.collision1() == False:
+                        self.persos[1].deplacement_gauche()
+                if touches[pygame.K_LEFT] == 1 :
+                    self.persos[1].droite = False
+                    self.persos[1].deplacement_gauche()
+                    sprite1.drawG()
+                    sprite1.advanceImage()
+                    #gestion des collisions
+                    if self.collision1() == False:
+                        self.persos[1].deplacement_droite()
+            if touches[pygame.K_UP] == 0 or touches[pygame.K_DOWN] == 0:
+                if touches[pygame.K_UP] == 1 :
+                    if self.persos[1].droite :
+                        sprite1.drawD()
+                        sprite1.advanceImage()
+                    else :
+                        sprite1.drawG()
+                        sprite1.advanceImage()
+                    self.persos[1].deplacement_haut()
+                    #gestion des collisions
+                    if self.collision1() == False:
+                        self.persos[1].deplacement_bas()
+                if touches[pygame.K_DOWN] == 1 :
+                    if game.persos[1].droite :
+                        sprite1.drawD()
+                        sprite1.advanceImage()
+                    else :
+                        sprite1.drawG()
+                        sprite1.advanceImage()
+                    game.persos[1].deplacement_bas()
+                    #gestion des collisions
+                    if game.collision1() == False:
+                        game.persos[1].deplacement_haut()
+            #poser une bombe
+            if touches[pygame.K_m] == 1 :
+                game.persos[1].poser_bombe()
+            if touches[pygame.K_k] == 1 and game.persos[1].détonation == True:
+                game.persos[1].faitpetertouteslesbombes()
+                ecran.blit(sp.monstreR_stat, (game.persos[1].rectangle.x, game.persos[1].rectangle.y))
+            #le perso est statique
+            if not(touches[pygame.K_RIGHT] == 1 or touches[pygame.K_LEFT] == 1 or touches[pygame.K_UP] == 1 or touches[pygame.K_DOWN] == 1) or (touches[pygame.K_RIGHT] == 1 and touches[pygame.K_LEFT] == 1 and touches[pygame.K_UP] == 0 and touches[pygame.K_DOWN] == 0) or (touches[pygame.K_RIGHT] == 0 and touches[pygame.K_LEFT] == 0 and touches[pygame.K_UP] == 1 and touches[pygame.K_DOWN] == 1) or (touches[pygame.K_RIGHT] == 1 and touches[pygame.K_LEFT] == 1 and touches[pygame.K_UP] == 1 and touches[pygame.K_DOWN] == 1):
+                ecran.blit(sp.monstreR_stat, (game.persos[1].rectangle.x, game.persos[1].rectangle.y))
+        else :
+            ecran.blit(sp.monstreR_mort, (game.persos[1].rectangle.x, game.persos[1].rectangle.y))
+            self.FinDuJeu()
+            
+            
+
+        #mise à jour des bombes solides en fonction de la position des persos
+        i=0
+        while i < (len(bombepassolide)):
+            if game.persos[0].rectangle.colliderect(bombepassolide[i]) == False and game.persos[1].rectangle.colliderect(bombepassolide[i]) == False:
+                solides.append(bombepassolide[i])
+                del bombepassolide[i]
+            else:
+                i+=1
+
+        #vérification des comptes à rebours
+        j = True
+        while j == True and listebombe != []:
+            if listebombe[0].compte_rebours() < 0:
+                #trigger l'explosion
+                listebombe[0].exploser()
+            else:
+                #si la première bombe n'explose pas, on sort de la boucle comme elles sont classés par ordre d'apparition
+                j = False
+
+        #récolte des bonus:
+        self.collisionbonus()
+
+        
+    def game_over(self):
+        for perso in self.persos:
+            if perso.health <= 0:
+                perso.vivant = False
+                perso.instant_mort = time.time()
+                
+
+#création des classes de personnage
+class Perso():
+
+    def __init__(self, x, y, image, n=1, s=1, p=1, r=3, h=1, t=False, d=False, v=1):
+        #intitiation super classe Sprite
+        #super().__init__()
+        self.nbbombemax = n
+        self.nbbombeleft = s
+        self.portée = p
+        self.rebours = r
+        self.health = h
+        self.last_time_hit = 0
+        self.transpercer = t
+        self.détonation = d
+        self.vitesse = v
+        self.compteurvitesse = 0
+        self.image = image
+        #chargement de l'image associée au personnage
+        self.rectangle = self.image.get_rect()
+        #coordonnées du personnage sur l'écran
+        self.rectangle.x = x
+        self.rectangle.y = y
+        self.droite = False
+        #Pour gérer la mort du perso
+        self.vivant = True
+        self.instant_mort = None
+        
+        
+
+    #coordonnées du perso sur la carte
+    def positioncarte_x(self):
+        return self.rectangle.x // 64
+
+    def positioncarte_y(self):
+        return self.rectangle.y // 64
+
+    #création des méthodes de déplacement
+    def deplacement_droite(self):
+        self.rectangle.x += self.vitesse
+    def deplacement_gauche(self):
+        self.rectangle.x -= self.vitesse
+    def deplacement_haut(self):
+        self.rectangle.y -= self.vitesse
+    def deplacement_bas(self):
+        self.rectangle.y += self.vitesse
+
+    #méthode pour poser les bombes
+    def poser_bombe(self):
+        xbombe = self.positioncarte_x()
+        ybombe = self.positioncarte_y()
+        if self.possibombe(xbombe, ybombe) == True:
+            self.nbbombeleft -= 1
+            #mettre la bombe sur la carte
+            cartebombe[ybombe][xbombe]=1
+            #création de l'objet de classe bombe
+            bomb = bombe(self.portée, self.rebours, self.transpercer, xbombe, ybombe, self)
+            #pour la gestion des collisions avec les bombes
+            bombepassolide.append(bomb.bomberect)
+            #màj liste des bombes
+            listebombe.append(bomb)
+
+    #savoir si on peut poser des bombes
+    def possibombe(self, x, y):
+        possibombe = True
+        #bombes restantes
+        if self.nbbombeleft == 0:
+            possibombe = False
+        #savoir si il y a pas déjà une bombe sur la position
+        if cartebombe[y][x] == 1:
+            possibombe = False
+        return possibombe
+
+    #si le perso prend un bonus:
+    def getbonus(self, type):
+        if type == "bombe":
+            self.nbbombeleft += 1
+            self.nbbombemax += 1
+        if type == "portée":
+            self.portée += 1
+        if type == "vitesse":
+            self.compteurvitesse += 1
+            if self.compteurvitesse == 3:
+                self.compteurvtesse = 0
+                self.vitesse += 1
+        if type == "transpercer":
+            self.transpercer = True
+        if type == "détonation":
+            self.détonation = True
+        if type == "vie":
+            self.health += 1
+
+    def faitpetertouteslesbombes(self):
+        for bombes in listebombe:
+            if bombes.perso == self:
+                bombes.exploser()
+    
+    def gethit(self):
+        if time.time() - self.last_time_hit >= 1 :
+            self.health -= 1
+            self.last_time_hit = time.time()
+
+#Animation des personnages en mouvement
+dwell = 0
+class Animation() :
+    def __init__(self, perso, framesD, framesG) :
+        self.perso = perso
+        self.index = 0
+        self.framesD = framesD
+        self.framesG = framesG
+        self.rect = self.framesD[self.index].get_rect()
+        self.dwell_countdown = dwell
+
+    def advanceImage(self) :  
+        self.dwell_countdown += 1
+        if self.dwell_countdown >=8 :
+            self.dwell_countdown = dwell
+            self.index = (self.index+1)%8
+                     
+    def drawD(self) :
+        ecran.blit(self.framesD[self.index], (self.perso.rectangle.x, self.perso.rectangle.y) )
+    def drawG(self) :
+        ecran.blit(self.framesG[self.index], (self.perso.rectangle.x, self.perso.rectangle.y) )
+
+
+
+class bombe:
+        def __init__(self, p, r, t, x, y, perso):
+            self.portée = p
+            self.rebours = r
+            self.transpercer = t
+            self.x = x
+            self.y = y
+            self.bomberect = pygame.Rect(self.x*64, self.y*64, 64, 64)
+            self.settingtime = time.time()
+            self.perso = perso
+
+        def compte_rebours(self):
+            return self.rebours - (time.time() - self.settingtime)
+
+        def exploser(self):
+            #suppression de la liste des (non)solides
+            if self.bomberect in solides:
+                solides.remove(self.bomberect)
+            else:
+                bombepassolide.remove(self.bomberect)
+            #supression sur la carte
+            cartebombe[self.y][self.x] = 0
+            #suppression de la liste des bombes
+            listebombe.remove(self)
+            #gestion de l'explosion
+            self.explosion()
+            #augmentation du nombre de bombe restant du personnage
+            self.perso.nbbombeleft += 1
+
+        #gère les dégâts de l'explosion
+        def explosion(self):
+            for perso in game.persos :
+                if perso.rectangle.colliderect(pygame.Rect(self.x*64, self.y*64, 64, 64)) == True :
+                    perso.gethit()
+                    game.game_over()
+            #lance l'animation de l'explosion sur la case de la bombe
+            carteanim[self.y][self.x] = 1
+            #gère chaque direction de l'explosion
+            self.explosion_haut(self.portée, self.transpercer, self.x, self.y)
+            self.explosion_droite(self.portée, self.transpercer, self.x, self.y)
+            self.explosion_bas(self.portée, self.transpercer, self.x, self.y)
+            self.explosion_gauche(self.portée, self.transpercer, self.x, self.y)
+
+        def explosion_haut(self, portée, trans, x, y):
+            i = 1
+            while i <= portée:
+                #terrain indestructible
+                if carte[y-i][x] == 3:
+                    #permet de sortir de la boucle:
+                    i += portée
+                #terrain destructible (mais qui stoppe l'explosion sauf si bonus transpercer)
+                elif carte[y-i][x] == 2:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y-i][x] = 1
+                    carte[y-i][x] = 1
+                    solides.remove(pygame.Rect(x*64, (y-i)*64, 64, 64))
+                    #bonus potentiel:
+                    popbonus(x, y-i)
+                    if trans == False:
+                        i += portée
+                    else:
+                        i += 1
+                elif carte[y-i][x] == 1:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y-i][x] = 1
+                    for perso in game.persos :
+                        if perso.rectangle.colliderect(pygame.Rect(x*64, (y-i)*64, 64, 64)) == True :
+                            perso.gethit()
+                            game.game_over()
+                    #déclenche l'explosion d'une autre bombe
+                    if cartebombe[y-i][x] == 1:
+                        #recherche de la bombe correspondante dans la liste des bombes
+                        j=0
+                        findbomb = False
+                        while findbomb == False:
+                            if listebombe[j].x == x and listebombe[j].y == y-i:
+                                listebombe[j].exploser()
+                                findbomb = True
+                            else:
+                                j += 1
+                    i += 1
+
+        def explosion_droite(self, portée, trans, x, y):
+            i = 1
+            while i <= portée:
+                #terrain indestructible
+                if carte[y][x+i] == 3:
+                    #permet de sortir de la boucle:
+                    i += portée
+                #terrain destructible (mais qui stoppe l'explosion sauf si bonus transpercer)
+                elif carte[y][x+i] == 2:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y][x+i] = 1
+                    carte[y][x+i] = 1
+                    solides.remove(pygame.Rect((x+i)*64, y*64, 64, 64))
+                    #bonus potentiel:
+                    popbonus(x+i, y)
+                    if trans == False:
+                        i += portée
+                    else:
+                        i += 1
+                elif carte[y][x+i] == 1:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y][x+i] = 1
+                    for perso in game.persos :
+                        if perso.rectangle.colliderect(pygame.Rect((x+i)*64, y*64, 64, 64)) == True :
+                            perso.gethit()
+                            game.game_over()
+                    #déclenche l'explosion d'une autre bombe
+                    if cartebombe[y][x+i] == 1:
+                        #recherche de la bombe correspondante dans la liste des bombes
+                        j=0
+                        findbomb = False
+                        while findbomb == False:
+                            if listebombe[j].x == x+i and listebombe[j].y == y:
+                                listebombe[j].exploser()
+                                findbomb = True
+                            else:
+                                j += 1
+                    i += 1
+
+        def explosion_gauche(self, portée, trans, x, y):
+            i = 1
+            while i <= portée:
+                #terrain indestructible
+                if carte[y][x-i] == 3:
+                    #permet de sortir de la boucle:
+                    i += portée
+                #terrain destructible (mais qui stoppe l'explosion sauf si bonus transpercer)
+                elif carte[y][x-i] == 2:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y][x-i] = 1
+                    carte[y][x-i] = 1
+                    solides.remove(pygame.Rect((x-i)*64, y*64, 64, 64))
+                    #bonus potentiel:
+                    popbonus(x-i, y)
+                    if trans == False:
+                        i += portée
+                    else:
+                        i += 1
+                elif carte[y][x-i] == 1:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y][x-i] = 1
+                    for perso in game.persos :
+                        if perso.rectangle.colliderect(pygame.Rect((x-i)*64, y*64, 64, 64)) == True :
+                            perso.gethit()
+                            game.game_over()
+                    #déclenche l'explosion d'une autre bombe
+                    if cartebombe[y][x-i] == 1:
+                        #recherche de la bombe correspondante dans la liste des bombes
+                        j=0
+                        findbomb = False
+                        while findbomb == False:
+                            if listebombe[j].x == x-i and listebombe[j].y == y:
+                                listebombe[j].exploser()
+                                findbomb = True
+                            else:
+                                j += 1
+                    i += 1
+
+        def explosion_bas(self, portée, trans, x, y):
+            i = 1
+            while i <= portée:
+                #terrain indestructible
+                if carte[y+i][x] == 3:
+                    #permet de sortir de la boucle:
+                    i += portée
+                #terrain destructible (mais qui stoppe l'explosion sauf si bonus transpercer)
+                elif carte[y+i][x] == 2:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y+i][x] = 1
+                    carte[y+i][x] = 1
+                    solides.remove(pygame.Rect(x*64, (y+i)*64, 64, 64))
+                    #bonus potentiel:
+                    popbonus(x, y+i)
+                    if trans == False:
+                        i += portée
+                    else:
+                        i += 1
+                elif carte[y+i][x] == 1:
+                    #lancement de l'animation de l'explosion
+                    carteanim[y+i][x] = 1
+                    for perso in game.persos :
+                        if perso.rectangle.colliderect(pygame.Rect(x*64, (y+i)*64, 64, 64)) == True :
+                            perso.gethit()
+                            game.game_over()
+                    #déclenche l'explosion d'une autre bombe
+                    if cartebombe[y+i][x] == 1:
+                        #recherche de la bombe correspondante dans la liste des bombes
+                        j=0
+                        findbomb = False
+                        while findbomb == False:
+                            if listebombe[j].x == x and listebombe[j].y == y+i:
+                                listebombe[j].exploser()
+                                findbomb = True
+                            else:
+                                j += 1
+                    i += 1
+
+def popbonus(x,y):
+    if cartebonus[y][x] != 0:
+        listebonus.append(Bonus(x, y, cartebonus[y][x]))
+        listebonussolide.append(Bonus(x, y, cartebonus[y][x]).bonusrect)
+        cartebonus[y][x] = 0
+
+#dictionnaire des bonus:
+dictbonus = {0:None, 1:"bombe", 2:"vitesse", 3:"portée", 4:"transpercer", 5:"détonation", 6:"vie"}
+dictimagebonus = {"bombe":sp.Imbonusbombe, "vitesse":sp.Imbonusvitesse, "portée":sp.Imbonusportée, "transpercer":sp.Imbonustranspercer, "détonation":sp.Imbonusdétonation, "vie":sp.Imbonusvie}
+
+#classe des bonus
+class Bonus:
+
+    def __init__(self, x, y, type):
+        self.x = x
+        self.y = y
+        self.type = dictbonus[type]
+        self.bonusrect = pygame.Rect(self.x*64, self.y*64, 64, 64)
+        self.image = dictimagebonus[self.type]
+
+    def deletebonus(self):
+        listebonus.remove(self)
+        listebonussolide.remove(self.bonusrect)
+
+
+#chargement du jeu
+#game = Game()
+
+#création de la map du jeu
+carte1 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+[3,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,3],
+[3,2,3,2,2,2,3,2,2,2,3,2,2,2,3,1,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,2,1,1,1,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,3,1,1,2,1,1,3,2,2,3,2,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,2,1,1,1,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,1,3,2,2,2,3,2,2,2,3,2,2,2,3,2,3],
+[3,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+
+carte2 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+[3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+[3,2,3,3,2,2,3,2,1,2,3,2,2,3,3,2,3],
+[3,2,3,3,2,2,2,2,1,2,2,2,2,3,3,2,3],
+[3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,1,1,1,2,2,2,2,2,2,3],
+[3,2,1,1,1,1,1,1,3,1,1,1,1,1,1,2,3],
+[3,2,2,2,2,2,2,1,1,1,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3],
+[3,2,3,3,2,2,2,2,1,2,2,2,2,3,3,2,3],
+[3,2,3,3,2,2,3,2,1,2,3,2,2,3,3,2,3],
+[3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+
+carte3 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,1,3,1,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,3,3,3,3,3,3,1,2,1,3,3,3,3,3,3,3],
+[3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,1,3,1,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+
+carte4 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+[3,2,2,2,1,2,1,2,1,2,1,2,1,2,1,1,3],
+[3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,1,3],
+[3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+[3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+[3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+[3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+[3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+[3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+[3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+[3,1,3,2,2,2,3,2,2,2,3,2,2,2,3,2,3],
+[3,1,1,2,1,2,1,2,1,2,1,2,1,2,2,2,3],
+[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+
+carte5 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+[3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+[3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3],
+[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+
+dictPositionDepartperso0 = {1:[64,11*64], 2: [7*64,6*64], 3:[7*64,6*64], 4:[64,11*64], 5:[64,11*64]}
+dictPositionDepartperso1 = {1:[15*64,64], 2: [9*64,6*64], 3:[9*64,6*64], 4:[15*64,64], 5:[15*64,64]}
+
+#création de la carte des bombes
+cartebombe=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
+#création de la carte des bonus               
+cartebonus = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+listebonus = []
+listebonussolide = []
+
+#création de la carte des animations
+carteanim = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
+#choix aléatoire de la carte
+numcarte = random.randint(1,5)
+dictCarte = {1:carte1, 2:carte2, 3:carte3, 4:carte4, 5:carte5}
+carte = dictCarte[numcarte]
+
+#chargement du jeu
+game = Game()
+
+#boucle de jeu
+while True:
+    #affichage de la map du jeu
+    indice1 = 0
+    ecran.fill(pygame.Color("#ae7640"))
+    ecran.fill(pygame.Color("#bd8958"))
+    for ligne in carte:
+        indice2 = 0
+        for j in ligne:
+            if j == 1:
+                terre = sp.dirt.get_rect()
+                terre.x = indice2*64
+                terre.y = indice1*64
+                ecran.blit(sp.dirt, terre)
+            if j == 2:
+                boite = sp.box.get_rect()
+                boite.x = indice2*64
+                boite.y = indice1*64
+                ecran.blit(sp.box, boite)
+            if j == 3:
+                bord = sp.bloc.get_rect()
+                bord.x = indice2*64
+                bord.y = indice1*64
+                ecran.blit(sp.bloc, bord)
+            indice2 += 1
+        indice1 += 1
+    #affichage bonus
+    for bonus in listebonus:
+        ecran.blit(bonus.image, bonus.bonusrect)
+
+    #affichage bombes
+    indicebombe1 = 0
+    for ligne in cartebombe:
+        indicebombe2 = 0
+        for j in ligne:
+            if j == 1:
+                rectanglebombe = sp.imagebombe.get_rect()
+                rectanglebombe.x = indicebombe2*64
+                rectanglebombe.y = indicebombe1*64
+                ecran.blit(sp.imagebombe, rectanglebombe)
+            indicebombe2 += 1
+        indicebombe1 += 1
+
+        #on vérifie si le jeu a commencé ou pas
+    if game.is_playing:
+        #démarrer le jeu
+        game.demarrer()
+    else:
+            #afficher le l'écran de bienvenue
+        ecran.blit(sp.logo, (220,0))
+        ecran.blit(sp.bouton_play, bouton_play_rectangle)
+        ecran.blit(sp.imagerègles, imagerègles_rectangle)
+
+    #faire l'anim des explosions
+    indiceanim1 = 0
+    for ligne in carteanim:
+        indiceanim2 = 0
+        for h in ligne:
+            if h != 0 :
+                #afficher la frame voulue
+                ecran.blit(sp.explode[h], (indiceanim2*64,indiceanim1*64) )
+            indiceanim2 += 1
+        indiceanim1 += 1
+
+    #tous les 20 tours de boucles parcourir la carte et modifier la case voulue de 1 à 8 pour changer le h dans la boucle au dessus
+    if compteur_tour%10 == 0:
+        indiceanimation1 = 0
+        for ligne in carteanim:
+            indiceanimation2 = 0
+            for h in ligne:
+                if h != 0 :
+                    carteanim[indiceanimation1][indiceanimation2] += 1
+                if carteanim[indiceanimation1][indiceanimation2] == 8:
+                    carteanim[indiceanimation1][indiceanimation2] = 0
+                indiceanimation2 += 1
+            indiceanimation1 += 1
+
+    compteur_tour += 1
+
+    #rafraichissement
+    pygame.display.update()
+
+    for evenement in pygame.event.get():
+        #si clic de souris
+        if evenement.type == pygame.MOUSEBUTTONDOWN:
+            #savoir si la positiopn de la souris se trouve sur le bouton play
+            if bouton_play_rectangle.collidepoint(evenement.pos):
+                #lancer le jeu
+                game.is_playing = True
+                
+                #réinitialisation du jeu
+                carte1 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,3],
+                [3,2,3,2,2,2,3,2,2,2,3,2,2,2,3,1,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,2,1,1,1,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,3,1,1,2,1,1,3,2,2,3,2,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,2,1,1,1,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,1,3,2,2,2,3,2,2,2,3,2,2,2,3,2,3],
+                [3,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+                
+                carte2 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+                [3,2,3,3,2,2,3,2,1,2,3,2,2,3,3,2,3],
+                [3,2,3,3,2,2,2,2,1,2,2,2,2,3,3,2,3],
+                [3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,1,1,1,2,2,2,2,2,2,3],
+                [3,2,1,1,1,1,1,1,3,1,1,1,1,1,1,2,3],
+                [3,2,2,2,2,2,2,1,1,1,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3],
+                [3,2,3,3,2,2,2,2,1,2,2,2,2,3,3,2,3],
+                [3,2,3,3,2,2,3,2,1,2,3,2,2,3,3,2,3],
+                [3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+                
+                carte3 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,1,3,1,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,3,3,3,3,3,3,1,2,1,3,3,3,3,3,3,3],
+                [3,2,2,2,2,2,1,1,3,1,1,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,1,3,1,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,2,2,2,2,2,2,2,3,2,2,2,2,2,2,2,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+                
+                carte4 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,2,2,2,1,2,1,2,1,2,1,2,1,2,1,1,3],
+                [3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,1,3],
+                [3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+                [3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+                [3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+                [3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+                [3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+                [3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3],
+                [3,2,2,1,2,1,2,1,2,1,2,1,2,1,2,2,3],
+                [3,1,3,2,2,2,3,2,2,2,3,2,2,2,3,2,3],
+                [3,1,1,2,1,2,1,2,1,2,1,2,1,2,2,2,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+                
+                carte5 = [[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+                [3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,3],
+                [3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3],
+                [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]]
+                
+                numcarte = random.randint(1,5)
+                dictCarte = {1:carte1, 2:carte2, 3:carte3, 4:carte4, 5:carte5}
+                carte = dictCarte[numcarte]
+                
+                perso0 = Perso(dictPositionDepartperso0[numcarte][0],dictPositionDepartperso0[numcarte][1], sp.monstreV_stat)
+                perso1 = Perso(dictPositionDepartperso1[numcarte][0],dictPositionDepartperso1[numcarte][1], sp.monstreR_stat)
+                game.persos = [perso0, perso1]
+                sprite0 = Animation(game.persos[0], sp.MonstreVd, sp.MonstreVg)
+                sprite1 = Animation(game.persos[1], sp.MonstreRd, sp.MonstreRg)
+                    
+                #création de la carte des bombes
+                cartebombe=[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+                
+                cartebonus = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+                
+                listebonus = []
+                listebonussolide = []
+                
+                carteanim = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+
+                listebonusforts = [0, 4, 5, 6]
+                indicebonus1 = 0
+                for ligne in carte:
+                    indicebonus2 = 0
+                    for j in ligne:
+                        if j == 2 :
+                            if random.randint(0,1) == 1:
+                                if numcarte == 4 and random.randint(1,30) == 1:
+                                    random.shuffle(listebonusforts)
+                                    cartebonus[indicebonus1][indicebonus2] = listebonusforts[0]
+                                else:
+                                    cartebonus[indicebonus1][indicebonus2] = random.randint(1,3)
+                        indicebonus2 += 1
+                    indicebonus1 += 1
+                #variation en fonction de la carte:
+                if numcarte == 1:
+                    cartebonus[6][8] = random.randint(5,6)
+                elif numcarte == 2:
+                    random.shuffle(listebonusforts)
+                    cartebonus[1][8] = listebonusforts[0]
+                    cartebonus[11][8] = listebonusforts[1]
+                    cartebonus[6][1] = listebonusforts[2]
+                    cartebonus[6][15] = listebonusforts[3]
+                elif numcarte == 3:
+                    random.shuffle(listebonusforts)
+                    cartebonus[1][1] = listebonusforts[0]
+                    cartebonus[1][15] = listebonusforts[1]
+                    cartebonus[11][1] = listebonusforts[2]
+                    cartebonus[11][15] = listebonusforts[3]
+                elif numcarte == 5:
+                    cartebonus[6][8] = 4
+                
+                #liste des solides que le personnage ne doit pas pouvoir traverser
+                solides = []
+                indice1 = 0
+                for ligne in carte:
+                    indice2 = 0
+                    for j in ligne:
+                        if j == 3 or j == 2 :
+                            solides += [pygame.Rect(indice2*64, indice1*64, 64, 64)]
+                        indice2 += 1
+                    indice1 += 1
+                
+                #liste des bombes en attente d'être solide
+                bombepassolide = []
+                
+                #liste des bombes
+                listebombe=[]
+                
+                #liste des bonus
+                listebonus = []
+                
+                #liste des rect de bonus dispos
+                listebonussolide = []
+                
+        #fermer la fenêtre quand le joueur appuie sur la croix rouge
+        if evenement.type == pygame.QUIT:
+            sys.exit(0)
+
+        
+    #limiter le nombre de tours de boucles à 60
+    horloge.tick(300)
