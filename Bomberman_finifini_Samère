@@ -258,8 +258,8 @@ class Perso():
 
     #méthode pour poser les bombes
     def poser_bombe(self):
-        xbombe = self.positioncarte_x()
-        ybombe = self.positioncarte_y()
+        xbombe = (self.rectangle.x + 25) // 64
+        ybombe = (self.rectangle.y + 30) // 64
         if self.possibombe(xbombe, ybombe) == True:
             self.nbbombeleft -= 1
             #mettre la bombe sur la carte
