@@ -969,4 +969,4 @@ while True:
 
         
     #limiter le nombre de tours de boucles à 60
-    horloge.tick(300)
+    horloge.tick(150)
