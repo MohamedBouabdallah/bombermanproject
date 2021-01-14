@@ -713,23 +713,15 @@ while True:
                 ecran.blit(sp.bloc, bord)
             indice2 += 1
         indice1 += 1
+        
     #affichage bonus
     for bonus in listebonus:
         ecran.blit(bonus.image, bonus.bonusrect)
 
-    #affichage bombes
-    indicebombe1 = 0
-    for ligne in cartebombe:
-        indicebombe2 = 0
-        for j in ligne:
-            if j == 1:
-                rectanglebombe = sp.imagebombe.get_rect()
-                rectanglebombe.x = indicebombe2*64
-                rectanglebombe.y = indicebombe1*64
-                ecran.blit(sp.imagebombe, rectanglebombe)
-            indicebombe2 += 1
-        indicebombe1 += 1
-
+    #affichage bombes    
+    for b in listebombe:
+        ecran.blit(sp.imagebombe,b.bomberect)
+        
         #on vérifie si le jeu a commencé ou pas
     if game.is_playing:
         #démarrer le jeu
