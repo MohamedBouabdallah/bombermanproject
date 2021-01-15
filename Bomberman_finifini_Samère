@@ -287,18 +287,18 @@ class Perso():
         if type == "bombe":
             self.nbbombeleft += 1
             self.nbbombemax += 1
-        if type == "portée":
+        elif type == "portée":
             self.portée += 1
-        if type == "vitesse":
+        elif type == "vitesse":
             self.compteurvitesse += 1
             if self.compteurvitesse == 3:
                 self.compteurvtesse = 0
                 self.vitesse += 1
-        if type == "transpercer":
+        elif type == "transpercer":
             self.transpercer = True
-        if type == "détonation":
+        elif type == "détonation":
             self.détonation = True
-        if type == "vie":
+        elif type == "vie":
             self.health += 1
 
     def faitpetertouteslesbombes(self):
