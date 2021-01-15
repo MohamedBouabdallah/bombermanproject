@@ -214,8 +214,6 @@ class Game:
 class Perso():
 
     def __init__(self, x, y, image, n=1, s=1, p=1, r=3, h=1, t=False, d=False, v=1):
-        #intitiation super classe Sprite
-        #super().__init__()
         self.nbbombemax = n
         self.nbbombeleft = s
         self.portée = p
