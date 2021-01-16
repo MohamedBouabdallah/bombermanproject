@@ -956,5 +956,5 @@ while True:
             sys.exit(0)
 
         
-    #limiter le nombre de tours de boucles à 60
+    #limiter le nombre de tours de boucles à 150
     horloge.tick(150)
